@@ -1,33 +1,77 @@
-// function getRow(firstRow, secondRow) {
-//   const firstRowCharA = firstRow.split('').filter(char => char === 'а').length;
-//   const secondRowCharA = secondRow.split('').filter(char => char === 'а').length;
-//
-//   return firstRowCharA > secondRowCharA ? firstRow : secondRow;
-// }
-//
-// console.log(getRow('мама мыла раму', 'кошака друг человека'));
-//
-// function formattedPhone(ph) {
-//   return `${ph[0]}${ph[1]} (${ph[2]}${ph[3]}${ph[4]}) ${ph[5]}${ph[6]}${ph[7]}-${ph[8]}${ph[9]}-${ph[10]}${ph[11]}`;
-// }
-//
-// console.log(formattedPhone('+71234567890'));
+const $btn = document.getElementById('btn-kick');
+const $superBtn = document.getElementById('btn-kick-superpower');
 
-function getRow() {
-  const firstRow = window.prompt("Введите первую строку");
-  const secondRow = window.prompt("Введите вторую строку");
-  const char = window.prompt("Введите букву для сравнения")
-  
-  const firstRowCharA = firstRow.split('').filter(i => i === char).length;
-  const secondRowCharA = secondRow.split('').filter(i => i === char).length;
-  
-  return firstRowCharA > secondRowCharA
-    ? alert(`В строке "${firstRow}" количество букв "${char}" больше!`)
-    : alert(`В строке "${secondRow}" количество букв "${char}" больше!`);
+const character = {
+  name: 'Pikachu',
+  defaultHp: 100,
+  damageHp: 100,
+  elHp: document.getElementById('health-character'),
+  elProgressbar: document.getElementById('progressbar-character'),
+  superPower: 'on',
+};
+
+const enemy = {
+  name: 'Charmander',
+  defaultHp: 100,
+  damageHp: 100,
+  elHp: document.getElementById('health-enemy'),
+  elProgressbar: document.getElementById('progressbar-enemy'),
+};
+
+$btn.addEventListener('click', function () {
+  changeHp(random(20), character);
+  changeHp(random(20), enemy);
+});
+
+$superBtn.addEventListener('click', function () {
+  character.superPower = 'off';
+  changeHp(random(40), enemy);
+  $superBtn.disabled = true;
+});
+
+function init() {
+  console.log('Start game!');
+  renderHp(character);
+  renderHp(enemy);
+  $superBtn.disabled = true;
 }
 
-function formattedPhone() {
-  const ph = window.prompt("Введите номер телефона в формате +71234567890");
-  
-  return alert(`Вуаля! ${ph[0]}${ph[1]} (${ph[2]}${ph[3]}${ph[4]}) ${ph[5]}${ph[6]}${ph[7]}-${ph[8]}${ph[9]}-${ph[10]}${ph[11]}`);
+function renderHp(person) {
+  renderHpLife(person);
+  renderProgressbarHp(person)
 }
+
+function renderHpLife(person) {
+  person.elHp.innerText = person.damageHp + ' /' + person.defaultHp;
+}
+
+function renderProgressbarHp(person) {
+  person.elProgressbar.style.width = person.damageHp + '%';
+}
+
+function changeHp(count, person) {
+  superPower();
+  if (person.damageHp <= count) {
+    person.damageHp = 0;
+    alert('Неудачник ' + person.name + ' проиграл!');
+    $btn.disabled = true;
+  } else {
+    person.damageHp -= count;
+  }
+  renderHp(person);
+}
+
+function random(num) {
+  return Math.ceil(Math.random() * num);
+}
+
+function superPower() {
+  if (character.damageHp < 30) {
+    if (character.superPower === 'on') {
+      alert('Pikachu может использовать супер-удар!')
+      $superBtn.disabled = false;
+    }
+  }
+}
+
+init();
