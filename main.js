@@ -7,7 +7,10 @@ const character = {
   damageHp: 100,
   elHp: document.getElementById('health-character'),
   elProgressbar: document.getElementById('progressbar-character'),
-  superPower: 'on',
+  changeHp: changeHp,
+  renderHp: renderHp,
+  superPower: superPower,
+  hasSuperPower: true,
 };
 
 const enemy = {
@@ -16,49 +19,51 @@ const enemy = {
   damageHp: 100,
   elHp: document.getElementById('health-enemy'),
   elProgressbar: document.getElementById('progressbar-enemy'),
+  changeHp: changeHp,
+  renderHp: renderHp,
 };
 
 $btn.addEventListener('click', function () {
-  changeHp(random(20), character);
-  changeHp(random(20), enemy);
+  character.changeHp(random(20));
+  enemy.changeHp(random(20));
 });
 
 $superBtn.addEventListener('click', function () {
-  character.superPower = 'off';
-  changeHp(random(40), enemy);
+  character.hasSuperPower = false;
+  enemy.changeHp(random(40));
   $superBtn.disabled = true;
 });
 
 function init() {
   console.log('Start game!');
-  renderHp(character);
-  renderHp(enemy);
+  character.renderHp();
+  enemy.renderHp();
   $superBtn.disabled = true;
 }
 
-function renderHp(person) {
-  renderHpLife(person);
-  renderProgressbarHp(person)
+function renderHp() {
+  renderHpLife.call(this);
+  renderProgressbarHp.call(this);
 }
 
-function renderHpLife(person) {
-  person.elHp.innerText = person.damageHp + ' /' + person.defaultHp;
+function renderHpLife() {
+  this.elHp.innerText = this.damageHp + ' /' + this.defaultHp;
 }
 
-function renderProgressbarHp(person) {
-  person.elProgressbar.style.width = person.damageHp + '%';
+function renderProgressbarHp() {
+  this.elProgressbar.style.width = this.damageHp + '%';
 }
 
-function changeHp(count, person) {
-  superPower();
-  if (person.damageHp <= count) {
-    person.damageHp = 0;
-    alert('Неудачник ' + person.name + ' проиграл!');
+function changeHp(count) {
+  character.superPower();
+  if (this.damageHp <= count) {
+    this.damageHp = 0;
+    alert('Неудачник ' + this.name + ' проиграл!');
     $btn.disabled = true;
   } else {
-    person.damageHp -= count;
+    this.damageHp -= count;
   }
-  renderHp(person);
+  this.renderHp();
 }
 
 function random(num) {
@@ -66,9 +71,9 @@ function random(num) {
 }
 
 function superPower() {
-  if (character.damageHp < 30) {
-    if (character.superPower === 'on') {
-      alert('Pikachu может использовать супер-удар!')
+  if (this.damageHp < 30) {
+    if (this.hasSuperPower) {
+      alert(this.name + ' может использовать супер-удар!')
       $superBtn.disabled = false;
     }
   }
