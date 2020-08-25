@@ -7,11 +7,10 @@ const character = {
   damageHp: 100,
   elHp: document.getElementById('health-character'),
   elProgressbar: document.getElementById('progressbar-character'),
-  superPower: 'on',
   changeHp: changeHp,
   renderHp: renderHp,
-  renderHpLife: renderHpLife,
-  renderProgressbarHp: renderProgressbarHp,
+  superPower: superPower,
+  hasSuperPower: true,
 };
 
 const enemy = {
@@ -22,8 +21,6 @@ const enemy = {
   elProgressbar: document.getElementById('progressbar-enemy'),
   changeHp: changeHp,
   renderHp: renderHp,
-  renderHpLife: renderHpLife,
-  renderProgressbarHp: renderProgressbarHp,
 };
 
 $btn.addEventListener('click', function () {
@@ -32,7 +29,7 @@ $btn.addEventListener('click', function () {
 });
 
 $superBtn.addEventListener('click', function () {
-  character.superPower = 'off';
+  character.hasSuperPower = false;
   enemy.changeHp(random(40));
   $superBtn.disabled = true;
 });
@@ -45,23 +42,20 @@ function init() {
 }
 
 function renderHp() {
-  console.log('##### renderHp', this);
   renderHpLife.call(this);
   renderProgressbarHp.call(this);
 }
 
 function renderHpLife() {
-  console.log('##### renderHpLife', this);
   this.elHp.innerText = this.damageHp + ' /' + this.defaultHp;
 }
 
 function renderProgressbarHp() {
-  console.log('##### renderProgressbarHp', this);
   this.elProgressbar.style.width = this.damageHp + '%';
 }
 
 function changeHp(count) {
-  superPower();
+  character.superPower();
   if (this.damageHp <= count) {
     this.damageHp = 0;
     alert('Неудачник ' + this.name + ' проиграл!');
@@ -69,7 +63,7 @@ function changeHp(count) {
   } else {
     this.damageHp -= count;
   }
-  renderHp();
+  this.renderHp();
 }
 
 function random(num) {
@@ -77,9 +71,9 @@ function random(num) {
 }
 
 function superPower() {
-  if (character.damageHp < 30) {
-    if (character.superPower === 'on') {
-      alert('Pikachu может использовать супер-удар!')
+  if (this.damageHp < 30) {
+    if (this.hasSuperPower) {
+      alert(this.name + ' может использовать супер-удар!')
       $superBtn.disabled = false;
     }
   }
