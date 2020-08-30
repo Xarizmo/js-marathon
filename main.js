@@ -1,5 +1,7 @@
 const $btn = document.getElementById('btn-kick');
 const $superBtn = document.getElementById('btn-kick-superpower');
+const $btnCounter = document.querySelector('.btn-counter');
+const $superBtnCounter = document.querySelector('.super-btn-counter');
 
 const character = {
   name: 'Pikachu',
@@ -22,19 +24,36 @@ const enemy = {
   renderHp: renderHp,
 };
 
-let round = 1;
+function counter(count = 0) {
+  return function() {
+    count++;
+    return count;
+  }
+}
+
+const mainAttackCounter = counter();
+const superPowerCounter = counter();
+const newRoundCounter = counter();
 
 $btn.addEventListener('click', function () {
-  character.changeHp(random(20));
-  enemy.changeHp(random(20));
-  round++;
+  character.changeHp(random(10));
+  enemy.changeHp(random(10));
+  let count = mainAttackCounter();
+  if (count === 6) {
+    this.disabled = true;
+  }
+  $btnCounter.innerText = 6 - count;
 });
 
 $superBtn.addEventListener('click', function () {
   character.hasSuperPower = false;
   enemy.changeHp(random(40));
   $superBtn.disabled = true;
-  round++;
+  let count = superPowerCounter();
+  if (count === 1) {
+    this.disabled = true;
+  }
+  $superBtnCounter.innerText = 1 - count;
 });
 
 function init() {
@@ -65,17 +84,16 @@ function changeHp(count) {
     this.currentHp = 0;
     $btn.disabled = true;
     fightLogging(log);
-  } else if (character.currentHp < 30) {
-    if (character.hasSuperPower) {
-      alert(character.name + ' может использовать супер-удар!')
-      $superBtn.disabled = false;
-    }
-  } else {
-    const log = this === enemy
-      ? `&#127752;Round ${round}<hr>${generateLog(this, character, count)}`
-      : `${generateLog(this, enemy, count)}<hr>`;
-    fightLogging(log);
+  } else if (this === character && character.currentHp < 90 && character.hasSuperPower) {
+    console.log(character.name + ' может использовать супер-удар!')
+    $superBtn.disabled = false;
   }
+  
+  const log = this === enemy
+    ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(this, character, count)}`
+    : `${generateLog(this, enemy, count)}<hr>`;
+  
+  fightLogging(log);
   
   this.renderHp();
 }
