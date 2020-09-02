@@ -1,3 +1,14 @@
+import Pokemon from './pokemon.js';
+
+const player1 = new Pokemon({
+  name: 'Pikachu',
+  type: 'electric',
+  hp: 500,
+  selectors: 'character',
+})
+
+console.log(player1);
+
 const $btn = document.getElementById('btn-kick');
 const $superBtn = document.getElementById('btn-kick-superpower');
 const $btnCounter = document.querySelector('.btn-counter');
@@ -10,7 +21,7 @@ const character = {
   elHp: document.getElementById('health-character'),
   elProgressbar: document.getElementById('progressbar-character'),
   changeHp: changeHp,
-  renderHp: renderHp,
+  renderHP: renderHP,
   hasSuperPower: true,
 };
 
@@ -36,7 +47,6 @@ const superPowerCounter = counter();
 const newRoundCounter = counter();
 
 $btn.addEventListener('click', function () {
-  character.changeHp(random(10));
   enemy.changeHp(random(10));
   let count = mainAttackCounter();
   if (count === 6) {
@@ -46,7 +56,6 @@ $btn.addEventListener('click', function () {
 });
 
 $superBtn.addEventListener('click', function () {
-  character.hasSuperPower = false;
   enemy.changeHp(random(40));
   $superBtn.disabled = true;
   let count = superPowerCounter();
@@ -61,41 +70,6 @@ function init() {
   character.renderHp();
   enemy.renderHp();
   $superBtn.disabled = true;
-}
-
-function renderHp() {
-  renderHpLife.call(this);
-  renderProgressbarHp.call(this);
-}
-
-function renderHpLife() {
-  this.elHp.innerText = this.currentHp + ' /' + this.defaultHp;
-}
-
-function renderProgressbarHp() {
-  this.elProgressbar.style.width = this.currentHp + '%';
-}
-
-function changeHp(count) {
-  this.currentHp -= count;
-  
-  if (this.currentHp <= count) {
-    const log = `&#129308;&#129307;The fight is over!<br>${this.name}&#128128; проиграл!`;
-    this.currentHp = 0;
-    $btn.disabled = true;
-    fightLogging(log);
-  } else if (this === character && character.currentHp < 90 && character.hasSuperPower) {
-    console.log(character.name + ' может использовать супер-удар!')
-    $superBtn.disabled = false;
-  }
-  
-  const log = this === enemy
-    ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(this, character, count)}`
-    : `${generateLog(this, enemy, count)}<hr>`;
-  
-  fightLogging(log);
-  
-  this.renderHp();
 }
 
 function random(num) {
