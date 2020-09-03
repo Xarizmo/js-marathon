@@ -11,52 +11,35 @@ class Pokemon extends Selectors {
     
     this.name = name;
     this.hp = {
+      default: hp,
       current: hp,
-      total: hp,
     };
     this.type = type;
     
-    this.renderHP();
-  }
-  
-  changeHp = (count) => {
-    this.currentHp -= count;
-    
-    if (this.currentHp <= count) {
-      const log = `&#129308;&#129307;The fight is over!<br>${this.name}&#128128; проиграл!`;
-      this.currentHp = 0;
-      $btn.disabled = true;
-      fightLogging(log);
-    } else if (this === character && character.currentHp < 90 && character.hasSuperPower) {
-      console.log(character.name + ' может использовать супер-удар!')
-      $superBtn.disabled = false;
-    }
-    
-    const log = this === enemy
-      ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(this, character, count)}`
-      : `${generateLog(this, enemy, count)}<hr>`;
-    
-    fightLogging(log);
-    
     this.renderHp();
+    this.hasSuperPower = true;
   }
   
-  renderHP = () => {
-    this.renderHPLife();
-    this.renderProgressbarHP();
+  changeHp = (count, player, cb) => {
+    this.hp.current -= count;
+    if (player.hp.current <= 0) {
+      player.hp.current = 0;
+    }
+    this.renderHp();
+    cb && cb(count, player);
   }
   
-  renderHPLife = () => {
-    const { elHP, hp: { current, total } } = this;
-    
-    elHP.innerText = current + ' /' + total;
+  renderHp = () => {
+    this.renderHpLife();
+    this.renderProgressbarHp();
   }
   
-  renderProgressbarHP = () => {
-    const { hp: {current, total }, elProgressbar } = this;
-    const percent = (current * 100) / total;
-    
-    elProgressbar.style.width = percent + '%';
+  renderHpLife = () => {
+    this.elHp.innerText = `${this.hp.current}/${this.hp.default}`;
+  }
+  
+  renderProgressbarHp = () => {
+    this.elProgressbar.style.width = `${(this.hp.current / this.hp.default) * 100}%`;
   }
 }
 
