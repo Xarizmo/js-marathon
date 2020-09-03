@@ -1,28 +1,24 @@
+import Pokemon from './pokemon.js';
+import random from './utils.js';
+
+const player1 = new Pokemon({
+  name: 'Pikachu',
+  type: 'electric',
+  hp: 500,
+  selectors: 'character',
+});
+
+const player2 = new Pokemon({
+  name: 'Charmander',
+  type: 'fire',
+  hp: 550,
+  selectors: 'enemy',
+});
+
 const $btn = document.getElementById('btn-kick');
 const $superBtn = document.getElementById('btn-kick-superpower');
 const $btnCounter = document.querySelector('.btn-counter');
 const $superBtnCounter = document.querySelector('.super-btn-counter');
-
-const character = {
-  name: 'Pikachu',
-  defaultHp: 100,
-  currentHp: 100,
-  elHp: document.getElementById('health-character'),
-  elProgressbar: document.getElementById('progressbar-character'),
-  changeHp: changeHp,
-  renderHp: renderHp,
-  hasSuperPower: true,
-};
-
-const enemy = {
-  name: 'Charmander',
-  defaultHp: 100,
-  currentHp: 100,
-  elHp: document.getElementById('health-enemy'),
-  elProgressbar: document.getElementById('progressbar-enemy'),
-  changeHp: changeHp,
-  renderHp: renderHp,
-};
 
 function counter(count = 0) {
   return function() {
@@ -36,18 +32,20 @@ const superPowerCounter = counter();
 const newRoundCounter = counter();
 
 $btn.addEventListener('click', function () {
-  character.changeHp(random(10));
-  enemy.changeHp(random(10));
+  player1.changeHp(random(100, 40), player1, fightLog)
+  if (player1.hp.current > 0) {
+    player2.changeHp(random(100, 40), player2, fightLog);
+  }
   let count = mainAttackCounter();
-  if (count === 6) {
+  if (count === 10) {
     this.disabled = true;
   }
-  $btnCounter.innerText = 6 - count;
+  $btnCounter.innerText = 10 - count;
 });
 
 $superBtn.addEventListener('click', function () {
-  character.hasSuperPower = false;
-  enemy.changeHp(random(40));
+  player1.hasSuperPower = false;
+  player2.changeHp(random(200, 100), player2, fightLog);
   $superBtn.disabled = true;
   let count = superPowerCounter();
   if (count === 1) {
@@ -58,59 +56,47 @@ $superBtn.addEventListener('click', function () {
 
 function init() {
   console.log('Start game!');
-  character.renderHp();
-  enemy.renderHp();
+  player1.renderHp();
+  player2.renderHp();
   $superBtn.disabled = true;
 }
 
-function renderHp() {
-  renderHpLife.call(this);
-  renderProgressbarHp.call(this);
-}
-
-function renderHpLife() {
-  this.elHp.innerText = this.currentHp + ' /' + this.defaultHp;
-}
-
-function renderProgressbarHp() {
-  this.elProgressbar.style.width = this.currentHp + '%';
-}
-
-function changeHp(count) {
-  this.currentHp -= count;
+function fightLog(count, player) {
+  const $logs = document.querySelector('.logs');
+  const $p = document.createElement('p');
+  let log;
   
-  if (this.currentHp <= count) {
-    const log = `&#129308;&#129307;The fight is over!<br>${this.name}&#128128; проиграл!`;
-    this.currentHp = 0;
+  if (player.hp.current === 0) {
     $btn.disabled = true;
-    fightLogging(log);
-  } else if (this === character && character.currentHp < 90 && character.hasSuperPower) {
-    console.log(character.name + ' может использовать супер-удар!')
+    $superBtn.disabled = true;
+    log = player === player2
+      ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!`
+      : `${generateLog(player, player2, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!<hr>`;
+  } else if (player === player1 && player1.hp.current < 250 && player1.hasSuperPower) {
+    console.log(player1.name + ' может использовать супер-удар!')
     $superBtn.disabled = false;
+    log = player === player2
+      ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}`
+      : `${generateLog(player, player2, count)}<hr>`;
+  } else {
+    log = player === player2
+      ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}`
+      : `${generateLog(player, player2, count)}<hr>`;
   }
   
-  const log = this === enemy
-    ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(this, character, count)}`
-    : `${generateLog(this, enemy, count)}<hr>`;
-  
-  fightLogging(log);
-  
-  this.renderHp();
-}
-
-function random(num) {
-  return Math.ceil(Math.random() * num);
+  $p.innerHTML = `${log}`;
+  $logs.insertBefore($p, $logs.children[0]);
 }
 
 function generateLog(firstPerson, secondPerson, count) {
-  const { name: firstPersonName, currentHp: firstPersonHp } = firstPerson;
+  const { name: firstPersonName, hp: { current: firstPersonHp } } = firstPerson;
   const { name: secondPersonName } = secondPerson;
   const logs = [
     `${firstPersonName} вспомнил что-то важное, но неожиданно ${secondPersonName}, не помня себя от испуга, ударил в предплечье врага. <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
     `${firstPersonName} поперхнулся, и за это ${secondPersonName} с испугу приложил прямой удар коленом в лоб врага. <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
     `${firstPersonName} забылся, но в это время наглый ${secondPersonName}, приняв волевое решение, неслышно подойдя сзади, ударил. <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
     `${firstPersonName} пришел в себя, но неожиданно ${secondPersonName} случайно нанес мощнейший удар. <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
-    `${firstPersonName}></firstPersonName> поперхнулся, но в это время ${secondPersonName}></secondPersonName> нехотя раздробил кулаком \<вырезанно цензурой\> противника. <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
+    `${firstPersonName} поперхнулся, но в это время ${secondPersonName} нехотя раздробил кулаком черепушку противника. <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
     `${firstPersonName} удивился, а ${secondPersonName} пошатнувшись влепил подлый удар. <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
     `${firstPersonName} высморкался, но неожиданно ${secondPersonName} провел дробящий удар. <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
     `${firstPersonName} пошатнулся, и внезапно наглый ${secondPersonName} беспричинно ударил в ногу противника <br>Нанёс урон: &#9889;${count}. Осталось HP: &#128148;${firstPersonHp}`,
@@ -119,14 +105,6 @@ function generateLog(firstPerson, secondPerson, count) {
   ];
   
   return logs[random(logs.length) - 1];
-}
-
-function fightLogging(log) {
-  const $logs = document.querySelector('.logs');
-  const $p = document.createElement('p');
-  
-  $p.innerHTML = `${log}`;
-  $logs.insertBefore($p, $logs.children[0]);
 }
 
 init();
