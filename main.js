@@ -1,83 +1,100 @@
 import Pokemon from './pokemon.js';
 import random from './utils.js';
+import { pokemons } from './pokemons.js';
 
-const player1 = new Pokemon({
-  name: 'Pikachu',
-  type: 'electric',
-  hp: 500,
-  selectors: 'character',
-});
+const $control = document.querySelector('.control');
+const $logs = document.querySelector('.logs');
+let player1, player2;
 
-const player2 = new Pokemon({
-  name: 'Charmander',
-  type: 'fire',
-  hp: 550,
-  selectors: 'enemy',
-});
+function renderStartBtn(name) {
+  $control.innerHTML = '';
+  const $startBtn = document.createElement('button');
+  $startBtn.classList.add('button');
+  $startBtn.innerText = name;
+  $startBtn.addEventListener('click', startGame);
+  $control.appendChild($startBtn);
+}
 
-const $btn = document.getElementById('btn-kick');
-const $superBtn = document.getElementById('btn-kick-superpower');
-const $btnCounter = document.querySelector('.btn-counter');
-const $superBtnCounter = document.querySelector('.super-btn-counter');
+renderStartBtn('Start game');
+
+function startGame() {
+  $control.innerHTML = '';
+  $logs.innerHTML = '';
+  renderPlayers();
+  renderAttackBtns();
+}
+
+function renderPlayers() {
+  const randomPokemonPlayer1 = pokemons[random(pokemons.length - 1)];
+  const filteredPokemons = pokemons.filter(i => i !== randomPokemonPlayer1);
+  const randomPokemonPlayer2 = filteredPokemons[random(filteredPokemons.length - 1)];
+  
+  player1 = new Pokemon({
+    ...randomPokemonPlayer1,
+    selectors: 'player1',
+  });
+  
+  player2 = new Pokemon({
+    ...randomPokemonPlayer2,
+    selectors: 'player2',
+  });
+  
+  player1.renderPlayer();
+  player2.renderPlayer();
+}
+
+function renderAttackBtns() {
+  player1.attacks.forEach(i => {
+    const $btn = document.createElement('button');
+    $btn.classList.add('button');
+    $control.appendChild($btn);
+    $btn.innerText = i.name;
+    
+    const btnCount = countBtn(i.maxCount, $btn);
+    
+    $btn.addEventListener('click', () => {
+      btnCount();
+      player1.changeHp(random(40, 20), player1, fightLog);
+      player2.changeHp(random(i.maxDamage, i.minDamage), player2, fightLog);
+    })
+    $control.appendChild($btn);
+  })
+}
 
 function counter(count = 0) {
-  return function() {
+  return function () {
     count++;
     return count;
   }
 }
 
-const mainAttackCounter = counter();
-const superPowerCounter = counter();
 const newRoundCounter = counter();
 
-$btn.addEventListener('click', function () {
-  player1.changeHp(random(100, 40), player1, fightLog)
-  if (player1.hp.current > 0) {
-    player2.changeHp(random(100, 40), player2, fightLog);
+function countBtn(count = 10, el) {
+  const innerText = el.innerText;
+  el.innerText = `${innerText} [${count}]`;
+  
+  return function () {
+    count--;
+    if (count === 0) {
+      el.disabled = true;
+    }
+    el.innerText = `${innerText} [${count}]`;
+    return count;
   }
-  let count = mainAttackCounter();
-  if (count === 10) {
-    this.disabled = true;
-  }
-  $btnCounter.innerText = 10 - count;
-});
-
-$superBtn.addEventListener('click', function () {
-  player1.hasSuperPower = false;
-  player2.changeHp(random(200, 100), player2, fightLog);
-  $superBtn.disabled = true;
-  let count = superPowerCounter();
-  if (count === 1) {
-    this.disabled = true;
-  }
-  $superBtnCounter.innerText = 1 - count;
-});
-
-function init() {
-  console.log('Start game!');
-  player1.renderHp();
-  player2.renderHp();
-  $superBtn.disabled = true;
 }
 
 function fightLog(count, player) {
-  const $logs = document.querySelector('.logs');
   const $p = document.createElement('p');
   let log;
+  // let $buttons = document.querySelectorAll('.button');
   
   if (player.hp.current === 0) {
-    $btn.disabled = true;
-    $superBtn.disabled = true;
+    // $buttons.forEach(i => i.disabled = true);
+    renderStartBtn('Restart game');
     log = player === player2
       ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!`
       : `${generateLog(player, player2, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!<hr>`;
-  } else if (player === player1 && player1.hp.current < 250 && player1.hasSuperPower) {
-    console.log(player1.name + ' может использовать супер-удар!')
-    $superBtn.disabled = false;
-    log = player === player2
-      ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}`
-      : `${generateLog(player, player2, count)}<hr>`;
   } else {
     log = player === player2
       ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}`
@@ -106,5 +123,3 @@ function generateLog(firstPerson, secondPerson, count) {
   
   return logs[random(logs.length) - 1];
 }
-
-init();
