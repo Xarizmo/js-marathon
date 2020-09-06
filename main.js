@@ -5,6 +5,7 @@ import { pokemons } from './pokemons.js';
 const $control = document.querySelector('.control');
 const $logs = document.querySelector('.logs');
 let player1, player2;
+let pokemonsCopy = [...pokemons];
 
 function renderStartBtn(name) {
   $control.innerHTML = '';
@@ -13,6 +14,18 @@ function renderStartBtn(name) {
   $startBtn.innerText = name;
   $startBtn.addEventListener('click', startGame);
   $control.appendChild($startBtn);
+}
+
+function renderNextEnemyBtn() {
+  const $newEnemyBtn = document.createElement('button');
+  $newEnemyBtn.classList.add('button');
+  $newEnemyBtn.innerText = 'Next Enemy';
+  $newEnemyBtn.addEventListener('click', () => {
+    $control.innerHTML = '';
+    renderPlayer2();
+    renderAttackBtns();
+  });
+  $control.appendChild($newEnemyBtn);
 }
 
 renderStartBtn('Start game');
@@ -24,23 +37,34 @@ function startGame() {
   renderAttackBtns();
 }
 
-function renderPlayers() {
-  const randomPokemonPlayer1 = pokemons[random(pokemons.length - 1)];
-  const filteredPokemons = pokemons.filter(i => i !== randomPokemonPlayer1);
-  const randomPokemonPlayer2 = filteredPokemons[random(filteredPokemons.length - 1)];
+function randomPokemonGenerator() {
+  const randomPokemon = pokemonsCopy[random(pokemonsCopy.length - 1)];
+  pokemonsCopy = pokemonsCopy.filter(i => i !== randomPokemon);
   
+  return randomPokemon;
+}
+
+function renderPlayer1() {
   player1 = new Pokemon({
-    ...randomPokemonPlayer1,
+    ...randomPokemonGenerator(),
     selectors: 'player1',
   });
   
+  player1.renderPlayer();
+}
+
+function renderPlayer2() {
   player2 = new Pokemon({
-    ...randomPokemonPlayer2,
+    ...randomPokemonGenerator(),
     selectors: 'player2',
   });
   
-  player1.renderPlayer();
   player2.renderPlayer();
+}
+
+function renderPlayers() {
+  renderPlayer1();
+  renderPlayer2();
 }
 
 function renderAttackBtns() {
@@ -87,11 +111,12 @@ function countBtn(count = 10, el) {
 function fightLog(count, player) {
   const $p = document.createElement('p');
   let log;
-  // let $buttons = document.querySelectorAll('.button');
+  let $buttons = document.querySelectorAll('.button');
   
   if (player.hp.current === 0) {
-    // $buttons.forEach(i => i.disabled = true);
+    $buttons.forEach(i => i.disabled = true);
     renderStartBtn('Restart game');
+    renderNextEnemyBtn();
     log = player === player2
       ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!`
       : `${generateLog(player, player2, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!<hr>`;

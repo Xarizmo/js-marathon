@@ -1,4 +1,4 @@
-export const pokemons = [
+export let pokemons = [
     {
         name: 'Pikachu',
         type: 'electric',
