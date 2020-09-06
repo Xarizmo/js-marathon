@@ -193,6 +193,7 @@ body {
     height: 100%;
     background: -webkit-gradient(linear, left top, right top, from(lime), to(#8bf500));
     background: linear-gradient(to right, lime, #8bf500);
+    transition: 1s ease-in-out;
 }
 .pokemon .details .hp .bar .health.low {
     background: -webkit-gradient(linear, left top, right top, from(#ffcc00), to(#f1f500));
