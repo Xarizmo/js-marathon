@@ -190,5 +190,37 @@ export let pokemons = [
                 maxCount: 2,
             }
         ]
+    },
+    {
+        img: 'http://sify4321.000webhostapp.com/mew.png',
+        name: 'Omosha',
+        type: 'ebanko',
+        hp: 404,
+        attacks: [
+            {
+                name: "Pound",
+                maxDamage: 40,
+                minDamage: 20,
+                maxCount: 100,
+            },
+            {
+                name: "Ancient Power",
+                maxDamage: 60,
+                minDamage: 45,
+                maxCount: 6,
+            },
+            {
+                name: "Aura Sphere",
+                maxDamage: 75,
+                minDamage: 60,
+                maxCount: 4,
+            },
+            {
+                name: "Psychic",
+                maxDamage: 130,
+                minDamage: 110,
+                maxCount: 2,
+            }
+        ]
     }
 ];

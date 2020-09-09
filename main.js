@@ -1,11 +1,8 @@
 import Pokemon from './pokemon.js';
 import random from './utils.js';
-import { pokemons } from './pokemons.js';
 
 const $control = document.querySelector('.control');
 const $logs = document.querySelector('.logs');
-let player1, player2;
-let pokemonsCopy = [...pokemons];
 
 function renderStartBtn(name) {
   $control.innerHTML = '';
@@ -16,73 +13,10 @@ function renderStartBtn(name) {
   $control.appendChild($startBtn);
 }
 
-function renderNextEnemyBtn() {
-  const $newEnemyBtn = document.createElement('button');
-  $newEnemyBtn.classList.add('button');
-  $newEnemyBtn.innerText = 'Next Enemy';
-  $newEnemyBtn.addEventListener('click', () => {
-    $control.innerHTML = '';
-    renderPlayer2();
-    renderAttackBtns();
-  });
-  $control.appendChild($newEnemyBtn);
-}
-
-renderStartBtn('Start game');
-
 function startGame() {
   $control.innerHTML = '';
   $logs.innerHTML = '';
-  renderPlayers();
-  renderAttackBtns();
-}
-
-function randomPokemonGenerator() {
-  const randomPokemon = pokemonsCopy[random(pokemonsCopy.length - 1)];
-  pokemonsCopy = pokemonsCopy.filter(i => i !== randomPokemon);
-  
-  return randomPokemon;
-}
-
-function renderPlayer1() {
-  player1 = new Pokemon({
-    ...randomPokemonGenerator(),
-    selectors: 'player1',
-  });
-  
-  player1.renderPlayer();
-}
-
-function renderPlayer2() {
-  player2 = new Pokemon({
-    ...randomPokemonGenerator(),
-    selectors: 'player2',
-  });
-  
-  player2.renderPlayer();
-}
-
-function renderPlayers() {
-  renderPlayer1();
-  renderPlayer2();
-}
-
-function renderAttackBtns() {
-  player1.attacks.forEach(i => {
-    const $btn = document.createElement('button');
-    $btn.classList.add('button');
-    $control.appendChild($btn);
-    $btn.innerText = i.name;
-    
-    const btnCount = countBtn(i.maxCount, $btn);
-    
-    $btn.addEventListener('click', () => {
-      btnCount();
-      player1.changeHp(random(40, 20), player1, fightLog);
-      player2.changeHp(random(i.maxDamage, i.minDamage), player2, fightLog);
-    })
-    $control.appendChild($btn);
-  })
+  game.start();
 }
 
 function counter(count = 0) {
@@ -108,28 +42,6 @@ function countBtn(count = 10, el) {
   }
 }
 
-function fightLog(count, player) {
-  const $p = document.createElement('p');
-  let log;
-  let $buttons = document.querySelectorAll('.button');
-  
-  if (player.hp.current === 0) {
-    $buttons.forEach(i => i.disabled = true);
-    renderStartBtn('Restart game');
-    renderNextEnemyBtn();
-    log = player === player2
-      ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!`
-      : `${generateLog(player, player2, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!<hr>`;
-  } else {
-    log = player === player2
-      ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, player1, count)}`
-      : `${generateLog(player, player2, count)}<hr>`;
-  }
-  
-  $p.innerHTML = `${log}`;
-  $logs.insertBefore($p, $logs.children[0]);
-}
-
 function generateLog(firstPerson, secondPerson, count) {
   const { name: firstPersonName, hp: { current: firstPersonHp } } = firstPerson;
   const { name: secondPersonName } = secondPerson;
@@ -148,3 +60,99 @@ function generateLog(firstPerson, secondPerson, count) {
   
   return logs[random(logs.length) - 1];
 }
+
+class Game {
+  player1;
+  player2;
+  
+  getRandomPokemon = async () => {
+    const res = await fetch('https://reactmarathon-api.netlify.app/api/pokemons?random=true');
+    const body = await res.json();
+    
+    return body;
+  }
+  
+  renderPlayer1 = async () => {
+    this.player1 = new Pokemon({
+      ...(await this.getRandomPokemon()),
+      selectors: 'player1',
+    });
+    
+    this.player1.renderPlayer();
+  }
+  
+  renderPlayer2 = async () => {
+    this.player2 = new Pokemon({
+      ...(await this.getRandomPokemon()),
+      selectors: 'player2',
+    });
+    
+    this.player2.renderPlayer();
+  }
+  
+  renderPlayers = () => {
+    this.renderPlayer1();
+    this.renderPlayer2();
+  }
+  
+  renderAttackBtns = async () => {
+    this.player1.attacks.forEach(i => {
+      const $btn = document.createElement('button');
+      $btn.classList.add('button');
+      $control.appendChild($btn);
+      $btn.innerText = i.name;
+    
+      const btnCount = countBtn(i.maxCount, $btn);
+    
+      $btn.addEventListener('click', () => {
+        btnCount();
+        this.player1.changeHp(random(40, 20), this.player1, this.fightLog);
+        this.player2.changeHp(random(i.maxDamage, i.minDamage), this.player2, this.fightLog);
+      })
+      $control.appendChild($btn);
+    })
+  }
+  
+  renderNextEnemyBtn = () => {
+    const $newEnemyBtn = document.createElement('button');
+    $newEnemyBtn.classList.add('button');
+    $newEnemyBtn.innerText = 'Next Enemy';
+    $newEnemyBtn.addEventListener('click', () => {
+      $control.innerHTML = '';
+      this.renderPlayer2();
+      this.renderAttackBtns();
+    });
+    $control.appendChild($newEnemyBtn);
+  }
+  
+  fightLog = (count, player) => {
+    const $p = document.createElement('p');
+    let log;
+    let $buttons = document.querySelectorAll('.button');
+    
+    if (player.hp.current === 0) {
+      $buttons.forEach(i => i.disabled = true);
+      renderStartBtn('Restart game');
+      this.renderNextEnemyBtn();
+      log = player === this.player2
+        ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, this.player1, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!`
+        : `${generateLog(player, this.player2, count)}<br>&#129308;&#129307;The fight is over!<br>${player.name}&#128128; проиграл!<hr>`;
+    } else {
+      log = player === this.player2
+        ? `&#127752;Round ${newRoundCounter()}<hr>${generateLog(player, this.player1, count)}`
+        : `${generateLog(player, this.player2, count)}<hr>`;
+    }
+    
+    $p.innerHTML = `${log}`;
+    $logs.insertBefore($p, $logs.children[0]);
+  }
+  
+  start = async () => {
+    this.renderPlayers();
+    await this.renderAttackBtns();
+  }
+}
+
+const game = new Game();
+
+renderStartBtn('Start game');
