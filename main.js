@@ -125,8 +125,8 @@ class Game {
       $btn.addEventListener('click', async () => {
         const count = await this.getKick(this.player1.id, this.player2.id, i.id);
         btnCount();
-        this.player1.changeHp(count.kick.player2, this.player1, this.fightLog);
-        this.player2.changeHp(count.kick.player1, this.player2, this.fightLog);
+        this.player1.changeHp(count.kick.player1, this.player1, this.fightLog);
+        this.player2.changeHp(count.kick.player2, this.player2, this.fightLog);
       })
       $control.appendChild($btn);
     })
